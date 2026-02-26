@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【論文ノート】深層残差収縮ネットワーク (DRSN)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; display: flex; min-height: 100vh; background-color: #fff; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+        .sidebar { width: 280px; background-color: #f6f8fa; border-right: 1px solid #d0d7de; position: fixed; height: 100vh; overflow-y: auto; padding: 24px; box-sizing: border-box; top: 0; left: 0; z-index: 100; }
+        .sidebar h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #24292f; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar li { margin-bottom: 8px; }
+        .sidebar a { text-decoration: none; color: #57606a; font-size: 14px; display: block; padding: 4px 0; transition: color 0.2s; }
+        .sidebar a:hover { color: #0969da; text-decoration: underline; }
+        .sidebar .sub-menu { margin-left: 20px; margin-top: 4px; font-size: 13px; }
+        .main-content { margin-left: 280px; flex: 1; padding: 40px 60px; max-width: 1000px; }
+        html { scroll-behavior: smooth; }
+        div[align="center"] { text-align: center; margin: 20px 0; }
+        table { display: block; width: 100%; overflow: auto; }
+        @media (max-width: 900px) {
+            body { display: block; }
+            .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid #d0d7de; }
+            .main-content { margin-left: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <h2>目次</h2>
+        <ul>
+            <li><a href="#1-背景">1. 背景</a></li>
+            <li>
+                <a href="#2-コアメカニズム">2. コアメカニズム</a>
+                <ul class="sub-menu">
+                    <li><a href="#21-ソフト閾値処理-soft-thresholding">2.1 ソフト閾値処理</a></li>
+                    <li><a href="#22-適応型閾値計算サブネットワーク">2.2 適応型サブネットワーク</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#3-ネットワーク構造のバリエーション">3. ネットワーク構造</a>
+                <ul class="sub-menu">
+                    <li><a href="#31-drsn-csチャネル共有閾値">3.1 DRSN-CS</a></li>
+                    <li><a href="#32-drsn-cwチャネル独立閾値">3.2 DRSN-CW</a></li>
+                </ul>
+            </li>
+            <li><a href="#4-実験の結論">4. 実験の結論</a></li>
+            <li><a href="#5-参考文献">5. 参考文献</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content markdown-body">
+        
+        <h1>【論文ノート】深層残差収縮ネットワーク (Deep Residual Shrinkage Networks, DRSN)</h1>
+
+        <blockquote>
+            <p><strong>A Deep Learning Framework for Highly Noised Vibration Signals</strong></p>
+            <p><strong>Paper Title:</strong> <em>Deep Residual Shrinkage Networks for Fault Diagnosis</em></p>
+            <p><strong>Journal:</strong> <em>IEEE Transactions on Industrial Informatics</em>, Vol. 16, No. 7, 2020</p>
+            <p><strong>DOI:</strong> <a href="https://doi.org/10.1109/TII.2019.2943898">10.1109/TII.2019.2943898</a></p>
+        </blockquote>
+
+        <p>
+            <img src="https://img.shields.io/badge/DOI-10.1109%2FTII.2019.2943898-blue" alt="DOI"> 
+            <img src="https://img.shields.io/badge/Status-Published-brightgreen" alt="Status"> 
+            <img src="https://img.shields.io/badge/Topic-Deep_Learning-orange" alt="Topic"> 
+            <img src="https://img.shields.io/badge/Topic-Fault_Diagnosis-orange" alt="Topic">
+        </p>
+
+        <hr>
+
+        <h2 id="1-背景">1. 背景</h2>
+        <p>産業用回転機械（ギアボックスやベアリングなど）の故障診断は、通常、振動信号の分析に依存しています。実際の稼働環境には大量のバックグラウンドノイズが存在し、故障初期の微弱な信号が覆い隠されやすくなります。</p>
+        <p>従来の深層学習モデル（CNNやResNetなど）は、高ノイズの信号を処理する際、ノイズ干渉を特徴として抽出してしまう傾向があり、診断精度の低下を招きます。深層残差収縮ネットワーク（Deep Residual Shrinkage Networks, DRSN）は、この問題に対処するために提案されました。この手法は、従来の信号処理におけるソフト閾値処理（Soft Thresholding）のメカニズムを非線形変換層として深層ニューラルネットワーク構造に導入し、ノイズ関連の特徴を排除して、強ノイズ環境下でのモデルの特徴学習能力を向上させます。</p>
+
+        <div align="center">
+          <img width="70%" src="https://github.com/user-attachments/assets/1ede7ae0-3219-4413-bc85-8d1e5e84f966" />
+          <p><em>図1 実験で使用された動力伝達システムの故障診断シミュレーター</em></p>
+        </div>
+
+        <h2 id="2-コアメカニズム">2. コアメカニズム</h2>
+        <p>DRSNの中心的なアイデアは、ResNetの残差モジュール内部に、閾値を自動計算して特徴の収縮を実行できるサブモジュールを統合することです。</p>
+
+        <h3 id="21-ソフト閾値処理-soft-thresholding">2.1 ソフト閾値処理 (Soft Thresholding)</h3>
+        <p>ソフト閾値処理は、信号ノイズ除去分野（ウェーブレットノイズ除去など）における古典的な手法です。その基本的な数学的ロジックは次のとおりです：</p>
+        <ol>
+            <li>絶対値が特定の閾値未満の特徴をゼロにする。</li>
+            <li>絶対値が閾値より大きい特徴をゼロの方向に収縮させる（つまり、設定された閾値を引く）。</li>
+        </ol>
+        <p>ソフト閾値処理により、モデルはゼロに近いノイズ特徴を除去しつつ、絶対値の大きい重要な故障特徴を保持することができます。この操作の導関数はゼロ以外の領域で常に1であるため、勾配消失を防ぐ効果も備えています。</p>
+
+        <div align="center">
+          <img width="80%" src="https://github.com/user-attachments/assets/9f79323d-8344-48bf-aecc-f0e86f57e0e2" />
+          <p><em>図2 ソフト閾値関数とその導関数の概略図</em></p>
+        </div>
+
+        <h3 id="22-適応型閾値計算サブネットワーク">2.2 適応型閾値計算サブネットワーク</h3>
+        <p>従来の信号処理手法では、閾値の設定を専門家の経験に頼ることが多く、ニューラルネットワーク内で層ごとに変化する特徴分布に適応することができませんでした。DRSNは、勾配降下アルゴリズムによってソフト閾値を自動的に学習および決定する特定のサブネットワークを設計しました。</p>
+        <p>計算のフローは以下の通りです：</p>
+        <ol>
+            <li><strong>グローバル特徴抽出：</strong> 入力特徴マップの絶対値を取り、Global Average Pooling (GAP) を実行して1次元ベクトルに圧縮します。</li>
+            <li><strong>スケーリング係数の生成：</strong> この1次元ベクトルを2層の全結合 (FC) ネットワークに入力し、Sigmoid活性化関数を介して (0, 1) の範囲のスケーリング係数 (Scaling Parameter) を出力します。</li>
+            <li><strong>閾値計算：</strong> 生成されたスケーリング係数と入力特徴の絶対値の平均を掛け合わせ、最終的な閾値を算出します。</li>
+        </ol>
+        <p>このメカニズムにより、閾値は常に正の数となり、特徴の最大絶対値を超えることはありません。同時に、入力される振動信号の各サンプルは、自身のノイズレベルに応じて専用の閾値を動的に生成できます。</p>
+
+        <h2 id="3-ネットワーク構造のバリエーション">3. ネットワーク構造のバリエーション</h2>
+        <p>特徴マップのチャネルに対する閾値の使用戦略に基づき、論文では2つの具体的なネットワークアーキテクチャが提案されています：</p>
+
+        <h3 id="31-drsn-csチャネル共有閾値">3.1 DRSN-CS（チャネル共有閾値）</h3>
+        <p>DRSN-CS（Channel-Shared）構造では、特徴マップのすべてのチャネルが同じソフト閾値を共有します。この方法は計算コストが比較的低く、各チャネルのノイズ分布が比較的均一なシナリオに適しています。</p>
+
+        <div align="center">
+          <img width="45%" src="https://github.com/user-attachments/assets/e387fe43-00f9-4380-87ed-b56058cf322f" />
+          <p><em>図3 チャネル共有閾値を持つ残差収縮ビルディングユニット (RSBU-CS) の構造</em></p>
+        </div>
+
+        <h3 id="32-drsn-cwチャネル独立閾値">3.2 DRSN-CW（チャネル独立閾値）</h3>
+        <p>DRSN-CW（Channel-Wise）構造では、全結合ネットワークの出力ニューロン数が特徴マップのチャネル数と一致します。これは、各チャネルが独自のスケーリング係数を計算し、独立した閾値を得ることを意味します。異なる畳み込みチャネルは通常、異なる程度のノイズ情報を含むため、チャネルごとの独立した閾値設定はより柔軟であり、理論的にはノイズ除去能力と特徴スクリーニング能力がより強力になります。</p>
+
+        <div align="center">
+          <img width="45%" src="https://github.com/user-attachments/assets/202bcf78-2b4a-4e4b-9eb7-c077eb4feab1" />
+          <p><em>図4 チャネル独立閾値を持つ残差収縮ビルディングユニット (RSBU-CW) の構造</em></p>
+        </div>
+
+        <h2 id="4-実験の結論">4. 実験の結論</h2>
+        <p>論文では、遊星歯車装置伝動システム故障診断シミュレーターを通じて、健全状態、ベアリング故障、ギア故障を含む8種類の状態データを収集しました。</p>
+        <p>異なるSN比（5dBから-5dBまで）のガウスノイズ、ラプラスノイズ、およびピンクノイズを人為的に追加した条件下で、DRSNは優れた診断性能を示しました。実験データによると、適応型ソフト閾値メカニズムを導入したDRSN-CSおよびDRSN-CWのテスト精度は、従来のCNNやResNetよりも有意に高くなりました。中でも、DRSN-CWは異なるチャネルの特徴に対してより精緻な収縮制御能力を持つため、全体的な診断精度はDRSN-CSをわずかに上回りました。</p>
+        <p>可視化結果からも、DRSNによって抽出された高レベルの特徴は、2次元空間においてクラス内の凝集度が高く、クラス間の識別性がより明確であることが確認されました。</p>
+
+        <h2 id="5-参考文献">5. 参考文献</h2>
+        <ul>
+            <li><strong>タイトル :</strong> Deep Residual Shrinkage Networks for Fault Diagnosis</li>
+            <li><strong>ジャーナル :</strong> IEEE Transactions on Industrial Informatics (Volume 16, Issue 7, July 2020, Pages 4681-4690)</li>
+            <li><strong>DOI :</strong> <a href="https://doi.org/10.1109/TII.2019.2943898">10.1109/TII.2019.2943898</a></li>
+        </ul>
+
+    </main>
+
+</body>
+</html>
