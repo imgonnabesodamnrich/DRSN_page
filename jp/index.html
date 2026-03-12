@@ -3,36 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【論文ノート】深層残差収縮ネットワーク (DRSN)</title>
+    <title>論文ノート：深層残差収縮ネットワーク (DRSN)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
-    
-    <script>
-        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
-    </script>
+    <script>MathJax = { tex: { inlineMath: [['$', '$'],['\\(', '\\)']] } };</script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <style>
         body { margin: 0; padding: 0; display: flex; min-height: 100vh; background-color: #fff; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
-        .sidebar { width: 280px; background-color: #f6f8fa; border-right: 1px solid #d0d7de; position: fixed; height: 100vh; overflow-y: auto; padding: 24px; box-sizing: border-box; top: 0; left: 0; z-index: 100; }
-        .sidebar h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #24292f; }
+        .sidebar { width: 300px; background-color: #f6f8fa; border-right: 1px solid #d0d7de; position: fixed; height: 100vh; overflow-y: auto; padding: 24px; box-sizing: border-box; top: 0; left: 0; z-index: 100; }
+        .sidebar h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #24292f; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
         .sidebar ul { list-style: none; padding: 0; margin: 0; }
         .sidebar li { margin-bottom: 8px; }
-        .sidebar a { text-decoration: none; color: #57606a; font-size: 14px; display: block; padding: 4px 0; transition: color 0.2s; }
+        .sidebar a { text-decoration: none; color: #57606a; font-size: 14px; display: block; padding: 4px 0; transition: color 0.2s; line-height: 1.5; }
         .sidebar a:hover { color: #0969da; text-decoration: underline; }
-        .sidebar .sub-menu { margin-left: 20px; margin-top: 4px; font-size: 13px; }
-        .main-content { margin-left: 280px; flex: 1; padding: 40px 60px; max-width: 1000px; }
+        .sidebar .sub-menu { margin-left: 16px; margin-top: 4px; border-left: 2px solid #e1e4e8; padding-left: 12px; }
+        .main-content { margin-left: 300px; flex: 1; padding: 40px 60px; max-width: 1000px; }
         html { scroll-behavior: smooth; }
-        div[align="center"] { text-align: center; margin: 20px 0; }
-        table { display: block; width: 100%; overflow: auto; }
-        @media (max-width: 900px) {
-            body { display: block; }
-            .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid #d0d7de; }
-            .main-content { margin-left: 0; padding: 20px; }
-        }
+        div[align="center"] { text-align: center; margin: 24px 0; }
+        details { margin: 16px 0; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; background-color: #f6f8fa; }
+        summary { cursor: pointer; font-weight: bold; outline: none; }
+        pre { background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; }
+        @media (max-width: 900px) { body { display: block; } .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid #d0d7de; } .main-content { margin-left: 0; padding: 20px; } }
     </style>
 </head>
-<body>
-
+<body class="markdown-body">
     <nav class="sidebar">
     <!-- 语言切换按钮开始 -->
     <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 8px; flex-wrap: wrap;">
@@ -44,32 +37,29 @@
     </div>
     <!-- 语言切换按钮结束 -->
         
-        <h2>目次</h2>
+        <h2>目次 Navigation</h2>
         <ul>
             <li><a href="#1-背景">1. 背景</a></li>
-            <li>
-                <a href="#2-コアメカニズム">2. コアメカニズム</a>
+            <li><a href="#2-コアメカニズム">2. コアメカニズム</a>
                 <ul class="sub-menu">
-                    <li><a href="#21-ソフト閾値処理-soft-thresholding">2.1 ソフト閾値処理</a></li>
+                    <li><a href="#21-ソフト閾値処理">2.1 ソフト閾値処理</a></li>
                     <li><a href="#22-適応型閾値計算サブネットワーク">2.2 適応型サブネットワーク</a></li>
                 </ul>
             </li>
-            <li>
-                <a href="#3-ネットワーク構造のバリエーション">3. ネットワーク構造</a>
+            <li><a href="#3-ネットワーク構造のバリエーション">3. ネットワーク構造のバリエーション</a>
                 <ul class="sub-menu">
-                    <li><a href="#31-drsn-csチャネル共有閾値">3.1 DRSN-CS</a></li>
-                    <li><a href="#32-drsn-cwチャネル独立閾値">3.2 DRSN-CW</a></li>
+                    <li><a href="#31-drsn-cs">3.1 DRSN-CS（チャネル共有）</a></li>
+                    <li><a href="#32-drsn-cw">3.2 DRSN-CW（チャネル独立）</a></li>
                 </ul>
             </li>
             <li><a href="#4-実験の結論">4. 実験の結論</a></li>
-            <li><a href="#5-参考文献">5. 参考文献</a></li>
+            <li><a href="#5-コード再現">5. コード再現</a></li>
+            <li><a href="#参考文献">参考文献</a></li>
         </ul>
     </nav>
 
-    <main class="main-content markdown-body">
-        
-        <h1>【論文ノート】深層残差収縮ネットワーク (Deep Residual Shrinkage Networks, DRSN)</h1>
-
+    <main class="main-content">
+        <h1>論文ノート：深層残差収縮ネットワーク (Deep Residual Shrinkage Networks, DRSN)</h1>
         <blockquote>
             <p><strong>A Deep Learning Framework for Highly Noised Vibration Signals</strong></p>
             <p><strong>Paper Title:</strong> <em>Deep Residual Shrinkage Networks for Fault Diagnosis</em></p>
@@ -90,54 +80,45 @@
         <p>産業用回転機械（ギアボックスやベアリングなど）の故障診断は、通常、振動信号の分析に依存しています。実際の稼働環境には大量のバックグラウンドノイズが存在し、故障初期の微弱な信号が覆い隠されやすくなります。</p>
         <p>従来の深層学習モデル（CNNやResNetなど）は、高ノイズの信号を処理する際、ノイズ干渉を特徴として抽出してしまう傾向があり、診断精度の低下を招きます。深層残差収縮ネットワーク（Deep Residual Shrinkage Networks, DRSN）は、この問題に対処するために提案されました。この手法は、従来の信号処理におけるソフト閾値処理（Soft Thresholding）のメカニズムを非線形変換層として深層ニューラルネットワーク構造に導入し、ノイズ関連の特徴を排除して、強ノイズ環境下でのモデルの特徴学習能力を向上させます。</p>
 
-        <div align="center">
-          <img width="70%" src="https://github.com/user-attachments/assets/1ede7ae0-3219-4413-bc85-8d1e5e84f966" />
-          <p><em>図1 実験で使用された動力伝達システムの故障診断シミュレーター</em></p>
-        </div>
-
         <h2 id="2-コアメカニズム">2. コアメカニズム</h2>
         <p>DRSNの中心的なアイデアは、ResNetの残差モジュール内部に、閾値を自動計算して特徴の収縮を実行できるサブモジュールを統合することです。</p>
 
-        <h3 id="21-ソフト閾値処理-soft-thresholding">2.1 ソフト閾値処理 (Soft Thresholding)</h3>
+        <h3 id="21-ソフト閾値処理">2.1 ソフト閾値処理 (Soft Thresholding)</h3>
         <p>ソフト閾値処理は、信号ノイズ除去分野（ウェーブレットノイズ除去など）における古典的な手法です。その基本的な数学的ロジックは次のとおりです：</p>
         <ol>
             <li>絶対値が特定の閾値未満の特徴をゼロにする。</li>
             <li>絶対値が閾値より大きい特徴をゼロの方向に収縮させる（つまり、設定された閾値を引く）。</li>
         </ol>
         <p>ソフト閾値処理により、モデルはゼロに近いノイズ特徴を除去しつつ、絶対値の大きい重要な故障特徴を保持することができます。この操作の導関数はゼロ以外の領域で常に1であるため、勾配消失を防ぐ効果も備えています。</p>
-
         <div align="center">
           <img width="80%" src="https://github.com/user-attachments/assets/9f79323d-8344-48bf-aecc-f0e86f57e0e2" />
-          <p><em>図2 ソフト閾値関数とその導関数の概略図</em></p>
+          <p><em>図1 ソフト閾値関数とその導関数の概略図</em></p>
         </div>
 
         <h3 id="22-適応型閾値計算サブネットワーク">2.2 適応型閾値計算サブネットワーク</h3>
-        <p>従来の信号処理手法では、閾値の設定を専門家の経験に頼ることが多く、ニューラルネットワーク内で層ごとに変化する特徴分布に適応することができませんでした。DRSNは、勾配降下アルゴリズムによってソフト閾値を自動的に学習および決定する特定のサブネットワークを設計しました。</p>
-        <p>計算のフローは以下の通りです：</p>
+        <p>従来の信号処理手法では、閾値の設定を専門家の経験に頼ることが多く、ニューラルネットワーク内で層ごとに変化する特徴分布に適応することができませんでした。DRSNは、勾配降下アルゴリズムによってソフト閾値を自動的に学習および決定する特定のサブネットワークを設計しました。計算フローは以下の通りです：</p>
         <ol>
             <li><strong>グローバル特徴抽出：</strong> 入力特徴マップの絶対値を取り、Global Average Pooling (GAP) を実行して1次元ベクトルに圧縮します。</li>
-            <li><strong>スケーリング係数の生成：</strong> この1次元ベクトルを2層の全結合 (FC) ネットワークに入力し、Sigmoid活性化関数を介して (0, 1) の範囲のスケーリング係数 (Scaling Parameter) を出力します。</li>
+            <li><strong>スケーリング係数の生成：</strong> この1次元ベクトルを2層の全結合 (FC) ネットワークに入力し、Sigmoid活性化関数を介して (0, 1) の範囲のスケーリング係数を出力します。</li>
             <li><strong>閾値計算：</strong> 生成されたスケーリング係数と入力特徴の絶対値の平均を掛け合わせ、最終的な閾値を算出します。</li>
         </ol>
-        <p>このメカニズムにより、閾値は常に正の数となり、特徴の最大絶対値を超えることはありません。同時に、入力される振動信号の各サンプルは、自身のノイズレベルに応じて専用の閾値を動的に生成できます。</p>
+        <p>このメカニズムにより、閾値は常に正の数となり、特徴の最大絶対値を超えることはありません。同時に、各振動信号サンプルは、自身のノイズレベルに応じて専用の閾値を動的に生成できます。</p>
 
         <h2 id="3-ネットワーク構造のバリエーション">3. ネットワーク構造のバリエーション</h2>
         <p>特徴マップのチャネルに対する閾値の使用戦略に基づき、論文では2つの具体的なネットワークアーキテクチャが提案されています：</p>
 
-        <h3 id="31-drsn-csチャネル共有閾値">3.1 DRSN-CS（チャネル共有閾値）</h3>
-        <p>DRSN-CS（Channel-Shared）構造では、特徴マップのすべてのチャネルが同じソフト閾値を共有します。この方法は計算コストが比較的低く、各チャネルのノイズ分布が比較的均一なシナリオに適しています。</p>
-
+        <h3 id="31-drsn-cs">3.1 DRSN-CS（チャネル共有閾値）</h3>
+        <p>DRSN-CS構造では、特徴マップのすべてのチャネルが同じソフト閾値を共有します。計算コストが比較的低く、各チャネルのノイズ分布が比較的均一なシナリオに適しています。</p>
         <div align="center">
           <img width="45%" src="https://github.com/user-attachments/assets/e387fe43-00f9-4380-87ed-b56058cf322f" />
-          <p><em>図3 チャネル共有閾値を持つ残差収縮ビルディングユニット (RSBU-CS) の構造</em></p>
+          <p><em>図2 チャネル共有閾値を持つ残差収縮ビルディングユニット (RSBU-CS) の構造</em></p>
         </div>
 
-        <h3 id="32-drsn-cwチャネル独立閾値">3.2 DRSN-CW（チャネル独立閾値）</h3>
-        <p>DRSN-CW（Channel-Wise）構造では、全結合ネットワークの出力ニューロン数が特徴マップのチャネル数と一致します。これは、各チャネルが独自のスケーリング係数を計算し、独立した閾値を得ることを意味します。異なる畳み込みチャネルは通常、異なる程度のノイズ情報を含むため、チャネルごとの独立した閾値設定はより柔軟であり、理論的にはノイズ除去能力と特徴スクリーニング能力がより強力になります。</p>
-
+        <h3 id="32-drsn-cw">3.2 DRSN-CW（チャネル独立閾値）</h3>
+        <p>DRSN-CW構造では、全結合ネットワークの出力ニューロン数が特徴マップのチャネル数と一致します。これは、各チャネルが独自のスケーリング係数を計算し、独立した閾値を得ることを意味します。異なる畳み込みチャネルは通常異なる程度のノイズ情報を含むため、チャネル独立の閾値設定はより柔軟であり、理論的にはノイズ除去および特徴選択能力が強力になります。</p>
         <div align="center">
           <img width="45%" src="https://github.com/user-attachments/assets/202bcf78-2b4a-4e4b-9eb7-c077eb4feab1" />
-          <p><em>図4 チャネル独立閾値を持つ残差収縮ビルディングユニット (RSBU-CW) の構造</em></p>
+          <p><em>図3 チャネル独立閾値を持つ残差収縮ビルディングユニット (RSBU-CW) の構造</em></p>
         </div>
 
         <h2 id="4-実験の結論">4. 実験の結論</h2>
@@ -145,15 +126,364 @@
         <p>異なるSN比（5dBから-5dBまで）のガウスノイズ、ラプラスノイズ、およびピンクノイズを人為的に追加した条件下で、DRSNは優れた診断性能を示しました。実験データによると、適応型ソフト閾値メカニズムを導入したDRSN-CSおよびDRSN-CWのテスト精度は、従来のCNNやResNetよりも有意に高くなりました。中でも、DRSN-CWは異なるチャネルの特徴に対してより精緻な収縮制御能力を持つため、全体的な診断精度はDRSN-CSをわずかに上回りました。</p>
         <p>可視化結果からも、DRSNによって抽出された高レベルの特徴は、2次元空間においてクラス内の凝集度が高く、クラス間の識別性がより明確であることが確認されました。</p>
 
-        <h2 id="5-参考文献">5. 参考文献</h2>
+        <h2 id="5-コード再現">5. コード再現</h2>
+        <p>ノイズを追加した CWRU ベアリングデータセット上で、PyTorch を用いて論文の手法を再現しました。完全なコードは以下の通りです：</p>
+        <details>
+        <summary><b>📦 クリックして展開：DRSN-CW プロジェクトの原理と完全なソースコード</b></summary>
+<pre><code class="language-python">"""
+プロジェクト名：深層残差収縮ネットワーク (DRSN-CW) - 回転機械の故障診断フレームワーク
+論文引用：Zhao, M., et al. "Deep Residual Shrinkage Networks for Fault Diagnosis," IEEE TII, 2020.
+
+技術的コアと実装原理：
+1. 適応型ソフト閾値処理 (Adaptive Soft Thresholding)：
+   非線形収縮オペレータを構築することで、モデルは振動信号内のノイズ成分を自動的に識別して抑制します。
+   このメカニズムは、特徴マッピングレベルで意思決定への貢献度が低い「ゼロに近い特徴」を収縮させ、強ノイズ環境に対する堅牢性を高めます。
+
+2. チャネル単位のアテンション機構 (Channel-wise Attention)：
+   モデル内部に軽量なサブネットワークを統合し、GAP と全結合層 (FC) を用いて各チャネル独立の動的閾値 τ を計算します。
+   この適応型ノイズ除去戦略により、ネットワークは異なる周波数成分の干渉に対して個別のノイズ除去を実行できます。
+
+3. 残差収縮構築ブロック (RSBU-CW)：
+   残差学習 (Residual Learning) を採用し、深いネットワークの性能劣化問題を解決します。
+   RSBU モジュールは信号のノイズ除去と特徴抽出を組み合わせ、元の時系列から高次のセマンティック特徴へのスムーズな変換を保証します。
+
+4. 堅牢性強化戦略：
+   巡回シフト、過渡インパルスシミュレーション、動的SN比 (SNR) 混合学習を含む動的データ拡張エンジンを統合。
+   極端な環境（例：-8dB SNR 環境）でのデータ特徴をシミュレートし、複雑な産業現場での汎化精度を向上させます。
+"""
+
+import os
+import sys
+import logging
+import numpy as np
+import scipy.io as sio
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+# =============================================================================
+# 1. 環境とコンピューティングリソースの設定
+# =============================================================================
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
+
+def get_device():
+    """
+    利用可能なデバイスを自動検出：CUDA 優先、次に MPS、最後に CPU。
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+DEVICE = get_device()
+logging.info(f"システムの実行デバイス: {DEVICE}")
+
+# =============================================================================
+# 2. データエンジニアリングモジュール
+# =============================================================================
+
+class CWRULoader:
+    """
+    CWRU 生データロードクラス：.mat ファイルを読み込み、駆動側の振動信号を抽出します。
+    """
+    def __init__(self, dataset_root, window_size=1024):
+        self.base_directory = os.path.abspath(dataset_root)
+        self.sample_length = window_size
+        self.sampling_interval = window_size
+
+    def _parse_mat_content(self, target_file):
+        try:
+            storage = sio.loadmat(target_file)
+            for identifier in storage.keys():
+                if 'DE_time' in identifier:
+                    return storage[identifier].flatten()
+        except Exception as e:
+            logging.debug(f"ファイルの読み込みエラー {target_file}: {e}")
+            return None
+        return None
+
+    def load_data(self, category_dictionary):
+        feature_collection, label_collection = [],[]
+        is_data_found = False
+        
+        for class_idx, name_list in category_dictionary.items():
+            for filename in name_list:
+                full_path = os.path.join(self.base_directory, f"{filename}.mat")
+                if not os.path.exists(full_path):
+                    continue
+                
+                series = self._parse_mat_content(full_path)
+                if series is None:
+                    continue
+                
+                is_data_found = True
+                for pointer in range(0, len(series) - self.sample_length + 1, self.sampling_interval):
+                    sub_seq = series[pointer : pointer + self.sample_length]
+                    feature_collection.append(sub_seq)
+                    label_collection.append(class_idx)
+        
+        if not is_data_found:
+            raise FileNotFoundError("指定されたパスにCWRUの .mat ファイルが見つかりません。")
+            
+        return np.array(feature_collection, dtype='float32'), np.array(label_collection, dtype='int64')
+
+def add_awgn_torch(signal_tensor, snr_value):
+    """
+    加法性白色ガウスノイズの重畳 (PyTorch 実装)：
+    P_noise = P_signal / 10^(SNR/10) に基づきノイズレベルを計算します。
+    """
+    if isinstance(snr_value, (list, tuple)):
+        snr = np.random.uniform(snr_value[0], snr_value[1])
+    else:
+        snr = snr_value
+        
+    signal_power = torch.mean(signal_tensor**2, dim=2, keepdim=True)
+    noise_std = torch.sqrt(signal_power / (10 ** (snr / 10.0)))
+    noise = torch.randn_like(signal_tensor) * noise_std
+    return signal_tensor + noise
+
+class FaultDataset(Dataset):
+    """
+    故障診断データセット：学習時の動的データ拡張（シフト、インパルス、ノイズ）をサポートします。
+    """
+    def __init__(self, x, y, is_training=False):
+        self.x = torch.from_numpy(x).float().unsqueeze(1)
+        self.y = torch.from_numpy(y).long()
+        self.is_training = is_training
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        sample_x = self.x[idx]
+        sample_y = self.y[idx]
+
+        if self.is_training:
+            # 1. ランダム巡回シフト
+            offset = np.random.randint(0, sample_x.shape[1])
+            sample_x = torch.roll(sample_x, shifts=offset, dims=1)
+
+            # 2. 過渡インパルス干渉
+            if np.random.rand() > 0.9:
+                num_spikes = np.random.randint(1, 3)
+                positions = np.random.randint(0, sample_x.shape[1], num_spikes)
+                spike_mag = torch.std(sample_x) * np.random.uniform(1.5, 2.5)
+                sample_x[0, positions] += spike_mag * np.random.choice([-1, 1])
+
+            # 3. 動的SNR混合
+            if np.random.rand() > 0.5:
+                sample_x = add_awgn_torch(sample_x.unsqueeze(0), (-8, 8)).squeeze(0)
+
+        return sample_x, sample_y
+
+# =============================================================================
+# 3. ニューラルネットワークアーキテクチャの定義 (DRSN-CW)
+# =============================================================================
+
+class SoftThreshold(nn.Module):
+    """ソフト閾値オペレータ：y = sign(x) * max(|x| - tau, 0)"""
+    def forward(self, x, tau):
+        return torch.sign(x) * F.relu(torch.abs(x) - tau)
+
+class RSBU_CW(nn.Module):
+    """残差収縮構築ブロック (Channel-wise)"""
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+        super(RSBU_CW, self).__init__()
+        padding = kernel_size // 2
+        
+        self.bn1 = nn.BatchNorm1d(in_channels)
+        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=False)
+        self.bn2 = nn.BatchNorm1d(out_channels)
+        self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size, stride=1, padding=padding, bias=False)
+        
+        self.gap = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(out_channels, out_channels),
+            nn.BatchNorm1d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Linear(out_channels, out_channels),
+            nn.Sigmoid()
+        )
+        self.threshold_op = SoftThreshold()
+        
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv1d(in_channels, out_channels, 1, stride=stride, bias=False),
+                nn.BatchNorm1d(out_channels)
+            )
+
+    def forward(self, x):
+        identity = self.shortcut(x)
+        
+        out = self.bn1(x)
+        out = F.relu(out)
+        out = self.conv1(out)
+        out = self.bn2(out)
+        out = F.relu(out)
+        out = self.conv2(out)
+        
+        abs_x = torch.abs(out)
+        abs_mean = self.gap(abs_x).view(abs_x.size(0), -1)
+        scales = self.fc(abs_mean)
+        tau = (scales * abs_mean).unsqueeze(2) 
+        
+        out = self.threshold_op(out, tau)
+        return out + identity
+
+class DRSN_CW(nn.Module):
+    """深層残差収縮ネットワーク全体構造"""
+    def __init__(self, num_classes):
+        super(DRSN_CW, self).__init__()
+        
+        self.conv1 = nn.Conv1d(1, 32, kernel_size=15, stride=2, padding=7, bias=False)
+        self.bn1 = nn.BatchNorm1d(32)
+        
+        self.layer1 = nn.Sequential(RSBU_CW(32, 32, 5, stride=2), RSBU_CW(32, 32, 5, stride=1))
+        self.layer2 = nn.Sequential(RSBU_CW(32, 64, 5, stride=2), RSBU_CW(64, 64, 5, stride=1))
+        self.layer3 = nn.Sequential(RSBU_CW(64, 128, 5, stride=2), RSBU_CW(128, 128, 5, stride=1))
+        
+        self.post_bn = nn.BatchNorm1d(128)
+        self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Linear(128, num_classes)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = F.relu(x)
+        
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        
+        x = self.post_bn(x)
+        x = F.relu(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        return x
+
+# =============================================================================
+# 4. 学習と評価のパイプライン
+# =============================================================================
+
+def train_and_evaluate(data_path, window_size=1024):
+    label_map = {
+        0:['Normal_0', 'Normal_1', 'Normal_2', 'Normal_3'],
+        1:['IR007_0', 'IR007_1', 'IR007_2', 'IR007_3'],
+        2:['IR014_0', 'IR014_1', 'IR014_2', 'IR014_3'],
+        3:['IR021_0', 'IR021_1', 'IR021_2', 'IR021_3'],
+        4:['B007_0', 'B007_1', 'B007_2', 'B007_3'],
+        5:['B014_0', 'B014_1', 'B014_2', 'B014_3'],
+        6:['B021_0', 'B021_1', 'B021_2', 'B021_3'],
+        7:['OR007@6_0', 'OR007@6_1', 'OR007@6_2', 'OR007@6_3'],
+        8:['OR014@6_0', 'OR014@6_1', 'OR014@6_2', 'OR014@6_3'],
+        9:['OR021@6_0', 'OR021@6_1', 'OR021@6_2', 'OR021@6_3']
+    }
+
+    loader = CWRULoader(data_path, window_size)
+    try:
+        raw_x, raw_y = loader.load_data(label_map)
+    except Exception as e:
+        logging.error(f"データの読み込みが中断されました: {e}")
+        return
+
+    x_train, x_temp, y_train, y_temp = train_test_split(raw_x, raw_y, test_size=0.3, random_state=42)
+    x_val, x_test, y_val, y_test = train_test_split(x_temp, y_temp, test_size=0.5, random_state=42)
+
+    mu, sigma = np.mean(x_train), np.std(x_train)
+    x_train = (x_train - mu) / sigma
+    x_val = (x_val - mu) / sigma
+    x_test = (x_test - mu) / sigma
+
+    train_ds = FaultDataset(x_train, y_train, is_training=True)
+    val_ds = FaultDataset(x_val, y_val, is_training=False)
+    test_ds = FaultDataset(x_test, y_test, is_training=False)
+
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
+    val_loader = DataLoader(val_ds, batch_size=64, shuffle=False)
+    test_loader = DataLoader(test_ds, batch_size=64, shuffle=False)
+
+    model = DRSN_CW(num_classes=len(label_map)).to(DEVICE)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=7)
+
+    num_epochs = 100
+    logging.info("モデルの学習と評価を開始します...")
+    
+    for epoch in range(num_epochs):
+        model.train()
+        train_loss, train_correct = 0, 0
+        for inputs, targets in train_loader:
+            inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * inputs.size(0)
+            train_correct += (outputs.argmax(1) == targets).sum().item()
+        
+        model.eval()
+        val_loss, val_correct = 0, 0
+        with torch.no_grad():
+            for inputs, targets in val_loader:
+                inputs = add_awgn_torch(inputs, snr_value=-8).to(DEVICE)
+                targets = targets.to(DEVICE)
+                outputs = model(inputs)
+                val_loss += criterion(outputs, targets).item() * inputs.size(0)
+                val_correct += (outputs.argmax(1) == targets).sum().item()
+        
+        epoch_loss = val_loss / len(val_ds)
+        scheduler.step(epoch_loss)
+        
+        logging.info(f"Epoch[{epoch+1}/{num_epochs}] 学習精度: {train_correct/len(train_ds):.4f} | 検証精度 (-8dB): {val_correct/len(val_ds):.4f}")
+
+    model.eval()
+    test_correct = 0
+    with torch.no_grad():
+        for inputs, targets in test_loader:
+            inputs = add_awgn_torch(inputs, snr_value=-8).to(DEVICE)
+            targets = targets.to(DEVICE)
+            outputs = model(inputs)
+            test_correct += (outputs.argmax(1) == targets).sum().item()
+    
+    print("\n" + "="*50)
+    print("モデル評価レポート (DRSN-CW PyTorch)")
+    print("評価環境: -8dB SNR (強バックグラウンドノイズ)")
+    print(f"最終認識精度: {100.0 * test_correct / len(test_ds):.2f}%")
+    print("="*50)
+
+if __name__ == "__main__":
+    DATA_PATH = os.path.join(os.getcwd(), 'data_path')
+    if not os.path.exists(DATA_PATH):
+        user_input = input("デフォルトのディレクトリが見つかりません。CWRU データセット (.mat) フォルダのパスを入力してください: ").strip()
+        if user_input:
+            DATA_PATH = user_input
+        else:
+            logging.critical("無効なパスです。プログラムを終了します。")
+            sys.exit(0)
+    train_and_evaluate(DATA_PATH)
+</code></pre>
+        </details>
+
+        <p>人為的に-8dBの強力なノイズを追加した条件下でも、深層残差収縮ネットワークは90%以上の精度を達成しました。</p>
+        <div align="center">
+          <img width="45%" src="https://github.com/user-attachments/assets/fa4150d7-1691-4a4d-848e-8b2059d8b26f" />
+          <p><em>図4 実験結果</em></p>
+        </div>
+
+        <h2 id="参考文献">参考文献</h2>
         <ul>
             <li><strong>タイトル :</strong> Deep Residual Shrinkage Networks for Fault Diagnosis</li>
             <li><strong>ジャーナル :</strong> IEEE Transactions on Industrial Informatics (Volume 16, Issue 7, July 2020, Pages 4681-4690)</li>
             <li><strong>DOI :</strong> <a href="https://doi.org/10.1109/TII.2019.2943898">10.1109/TII.2019.2943898</a></li>
         </ul>
-
     </main>
-
 </body>
 </html>
-
